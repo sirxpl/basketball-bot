@@ -21,9 +21,14 @@
       <nav class="nav-links" aria-label="Main navigation">
         <a href="#features">Features</a>
         <a href="#status">System status</a>
+        <a href="#upcoming">NBA schedule</a>
         <a href="#activity">Activity</a>
       </nav>
-      <a class="nav-cta" href="https://github.com/sirxpl/basketball-bot" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      {% if login_enabled %}
+        <a class="nav-cta" href="{{ url_for('dashboard') if signed_in else url_for('login') }}">{{ 'My dashboard' if signed_in else 'Login with Discord' }} <span aria-hidden="true">↗</span></a>
+      {% else %}
+        <a class="nav-cta" href="#upcoming">NBA schedule <span aria-hidden="true">↗</span></a>
+      {% endif %}
     </div>
   </header>
 
@@ -35,11 +40,14 @@
         <p class="hero-description">
           Basketball Bot brings court-side fun to your Discord server.
           Play shooting minigames, build your player profile, and climb your server leaderboard.
-          NBA data features are on the way.
+          Browse real upcoming NBA games below. Discord bot commands are temporarily paused while login access is rate-limited.
         </p>
         <div class="hero-actions">
           <a class="button button-primary" href="#features">Explore features <span aria-hidden="true">↗</span></a>
           <a class="button button-secondary" href="#status">View live status <span aria-hidden="true">↓</span></a>
+          {% if login_enabled %}
+          <a class="button button-secondary" href="{{ url_for('dashboard') if signed_in else url_for('login') }}">Discord dashboard ↗</a>
+          {% endif %}
         </div>
         <div class="hero-meta">
           <span><span class="meta-dot"></span> Discord community bot</span>
@@ -71,14 +79,14 @@
       <div class="feature-grid">
         <article class="feature-card">
           <span class="feature-icon" aria-hidden="true">🏀</span>
-          <div><span class="tag tag-live">AVAILABLE NOW</span></div>
+          <div><span class="tag">BOT PAUSED</span></div>
           <h3>Take your shot</h3>
           <p>Try a two- or three-point shot with <code>/shoot</code> and earn fictional points and XP.</p>
           <span class="feature-command">/shoot</span>
         </article>
         <article class="feature-card">
           <span class="feature-icon" aria-hidden="true">🏆</span>
-          <div><span class="tag tag-live">AVAILABLE NOW</span></div>
+          <div><span class="tag">BOT PAUSED</span></div>
           <h3>Own the leaderboard</h3>
           <p>Build your player profile and compete for the top spot with your server's members.</p>
           <span class="feature-command">/profile &nbsp; /leaderboard</span>
@@ -87,8 +95,8 @@
           <span class="feature-icon" aria-hidden="true">📊</span>
           <div><span class="tag">IN DEVELOPMENT</span></div>
           <h3>Follow the NBA</h3>
-          <p>Game scores, schedules, standings, and team updates are planned for a future release.</p>
-          <span class="feature-command">COMING SOON</span>
+          <p>Upcoming NBA matchups are now available on this website. Discord live-score commands and standings are planned.</p>
+          <span class="feature-command">SCHEDULE IS LIVE</span>
         </article>
       </div>
     </section>
@@ -126,7 +134,7 @@
         </article>
         <article class="status-card">
           <div class="component-header"><span class="component-icon" aria-hidden="true">🗃️</span><span class="state-pill checking" id="badge-database">Checking</span></div>
-          <h3>MongoDB</h3>
+          <h3>Storage</h3>
           <p class="component-description" id="message-database">Checking...</p>
           <div class="component-footer"><span>Startup connection</span><span class="status-ping" id="date-database">—</span></div>
         </article>
@@ -136,15 +144,32 @@
           <p class="component-description" id="message-nba">Checking...</p>
           <div class="component-footer"><span>Scoreboard probe · every 5 min</span><span class="status-ping" id="date-nba">—</span></div>
         </article>
+        <article class="status-card">
+          <div class="component-header"><span class="component-icon" aria-hidden="true">🗓️</span><span class="state-pill checking" id="badge-schedule">Checking</span></div>
+          <h3>NBA season schedule</h3>
+          <p class="component-description" id="message-schedule">Checking...</p>
+          <div class="component-footer"><span>Cache · 30 minutes</span><span class="status-ping" id="date-schedule">—</span></div>
+        </article>
       </div>
       <div class="notice">
         <span aria-hidden="true">ⓘ</span>
         <p>
           These statuses describe <strong>this hosting instance</strong>. A failed NBA check means the feed
           couldn't be reached from our server, not necessarily that NBA.com is down globally.
-          NBA feed failures do not automatically stop the Discord bot. MongoDB status currently confirms the startup connection, not continuous monitoring.
+          Discord bot login is intentionally disabled while its gateway requests are rate-limited. The public website and NBA schedule remain separate. MongoDB is not required while the bot is paused.
         </p>
       </div>
+    </section>
+
+    <section class="section shell" id="upcoming" aria-labelledby="upcoming-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">AROUND THE LEAGUE</p><h2 id="upcoming-title">Upcoming NBA games<span class="accent-period">.</span></h2></div>
+        <p>Scheduled games from the NBA season feed. All times use your browser's local timezone.</p>
+      </div>
+      <div class="public-schedule-grid" id="public-schedule" aria-live="polite">
+        <p class="activity-empty">Checking upcoming matchups…</p>
+      </div>
+      <p class="activity-hint" id="schedule-notice">Schedule may change. Confirm details at <a href="https://www.nba.com/schedule" target="_blank" rel="noopener noreferrer">NBA.com ↗</a>.</p>
     </section>
 
     <section class="section shell activity-section" id="activity" aria-labelledby="activity-title">

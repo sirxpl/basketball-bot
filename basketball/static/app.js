@@ -7,7 +7,8 @@ const STATE_NAMES = {
   checking: "Checking",
   starting: "Starting",
   unknown: "Unknown",
-  temporary: "In-memory"
+  temporary: "In-memory",
+  disabled: "Paused"
 };
 
 function displayTime(input) {
@@ -26,7 +27,8 @@ function showStatus(data) {
     operational: ["All monitored systems operational", "The website, Discord bot, database startup check, and NBA scoreboard feed are reporting normally.", "✓"],
     degraded: ["Some services are experiencing issues", "Check the individual components below for details.", "!"],
     checking: ["Some services are still being checked", "Information will update as each component finishes starting or checking.", "◌"],
-    testing: ["Temporary testing mode", "No MongoDB required: player stats will reset when this service restarts.", "◎"]
+    testing: ["Temporary testing mode", "No MongoDB required: player stats will reset when this service restarts.", "◎"],
+    dashboard_only: ["Dashboard-only mode is active", "Discord bot token login is intentionally paused. Public NBA and status services are still available.", "◎"]
   };
   const info = phrases[overall] || phrases.checking;
   title.textContent = info[0];
@@ -35,7 +37,7 @@ function showStatus(data) {
   overallIcon.className = "overall-icon " + overall;
   document.getElementById("updated-time").textContent = displayTime(data.generated_at);
 
-  ["website", "discord", "database", "nba"].forEach(function (component) {
+  ["website", "discord", "database", "nba", "schedule"].forEach(function (component) {
     const row = data.components && data.components[component];
     if (!row) return;
     const state = STATE_NAMES[row.state] ? row.state : "unknown";
@@ -101,3 +103,50 @@ async function refreshStatus() {
 document.getElementById("refresh-status").addEventListener("click", refreshStatus);
 refreshStatus();
 setInterval(refreshStatus, 30000);
+
+
+function publicScheduleNode(tag, cls, content) {
+  const element = document.createElement(tag);
+  if (cls) element.className = cls;
+  if (content !== undefined) element.textContent = String(content);
+  return element;
+}
+async function refreshPublicSchedule() {
+  const container = document.getElementById("public-schedule");
+  if (!container) return;
+  try {
+    const response = await fetch("/api/schedule", {cache:"no-store"});
+    if (!response.ok) throw Error("Unavailable");
+    const data = await response.json();
+    container.replaceChildren();
+    const list = Array.isArray(data.games) ? data.games.slice(0, 8) : [];
+    if (!list.length) {
+      container.appendChild(publicScheduleNode("p", "activity-empty",
+        data.state === "checking" ? "Checking the NBA schedule feed…" :
+        "No upcoming games are currently available from this server."));
+    } else {
+      list.forEach(function (game) {
+        const card = publicScheduleNode("article", "public-schedule-card");
+        const when = new Date(game.start_utc);
+        const date = isNaN(when.getTime()) ? "Time unavailable" :
+          when.toLocaleString(undefined, {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+        card.append(
+          publicScheduleNode("span", "public-game-time", date),
+          publicScheduleNode("h3", "", (game.away || "Away") + " @ " + (game.home || "Home")),
+          publicScheduleNode("p", "", (game.label || "Scheduled") + " · " + (game.arena || "Venue TBA"))
+        );
+        container.appendChild(card);
+      });
+    }
+    const notice=document.getElementById("schedule-notice");
+    if (data.state === "degraded") {
+      notice.textContent = data.stale ?
+        "The NBA schedule feed is temporarily unavailable. Displaying cached games; verify on NBA.com." :
+        "NBA schedule could not be loaded from this server. Please check NBA.com directly.";
+    }
+  } catch (_) {
+    container.replaceChildren(publicScheduleNode("p","activity-empty","Could not load the NBA schedule. Try refreshing."));
+  }
+}
+refreshPublicSchedule();
+setInterval(refreshPublicSchedule, 60000);
