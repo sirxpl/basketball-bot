@@ -17,6 +17,30 @@ NBA schedule data is fetched from the publicly accessible NBA CDN, with no API k
 
 The signed-in dashboard is currently **read-only**. It does not provide server administration, Discord command control, guild permissions or economy management.
 
+## 🔗 Pasted website links: Discord Components V2 cards
+
+Discord's official **Component Embeds** can render custom link previews directly from website HTML. This site adds one server-rendered Discord Container with an orange accent, branded 1200 x 630 PNG image, and **real link buttons**:
+
+- **Open Dashboard / Dashboard** — opens Discord OAuth2 account dashboard.
+- **NBA Games** — jumps to the upcoming-games section on the public website.
+- **Live Status** — jumps to the public health components.
+- **GitHub** — opens the project source repository.
+
+To share, paste either of these public URLs into a Discord channel:
+
+    https://basketball-bot-6jpx.onrender.com/
+    https://basketball-bot-6jpx.onrender.com/share
+
+The website has a **Copy Discord link** button. These rich previews are defined in the website HTML; they work independently of the Discord gateway bot and do NOT need a bot token, message content intent, webhooks, or MongoDB.
+
+**Important distinction:** Website link previews support only **link-style** buttons and media, not buttons that run Discord bot callbacks. The private /dashboard URL requires OAuth login, so send the public homepage or /share link; the embed's Dashboard button takes a user to their own login page.
+
+The server embeds official JSON directly in HTML (less than Discord's 3,000-byte limit), plus Open Graph and Twitter Card tags for platforms that don't support Component Embeds. The branded PNG is generated at /og-preview.png without external media sources. The preview is static promotional content, not a constantly updated service health claim.
+
+Discord may cache link previews and feature display may vary across clients. The crawler must access the Render-hosted page and PNG within Discord's fetch timeout; Render Free cold starts can occasionally prevent a preview. Use the official Embed Debugger at https://discord.com/developers/embeds if a link preview doesn't display after deployment.
+
+Custom domain: set the optional PUBLIC_SITE_URL environment variable to a plain HTTPS origin. By default, it points to the existing Render URL. All buttons use this trusted configured origin, never the HTTP Host header.
+
 ## Setup: existing Render Web Service
 
 1. Merge the dashboard PR into the main branch of https://github.com/sirxpl/basketball-bot .
