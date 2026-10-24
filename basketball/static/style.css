@@ -12,3 +12,14 @@
 
 .overall-icon.testing{background:#203b59;color:#8ac8ff}
 .state-pill.temporary{background:#213954;color:#94caff}
+
+.overall-icon.dashboard_only{background:#213c56;color:#96cbff}
+.state-pill.disabled{background:#213c56;color:#96cbff}
+.status-grid{grid-template-columns:repeat(auto-fit,minmax(195px,1fr))}
+.public-schedule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.public-schedule-card{background:linear-gradient(140deg,#18253a,#101b2d);border:1px solid #304059;border-radius:13px;padding:20px;min-height:135px}
+.public-game-time{font-size:11px;font-weight:800;color:#ffaa76}
+.public-schedule-card h3{font-size:16px;line-height:1.4;margin:11px 0 4px}
+.public-schedule-card p{color:#93a7c0;font-size:12px;margin:0}
+.activity-hint a{color:#ffa675}
+@media(max-width:700px){.public-schedule-grid{grid-template-columns:1fr}}

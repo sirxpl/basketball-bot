@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="Basketball Bot dashboard with live system health and upcoming NBA games.">
+  <title>Dashboard · Basketball Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <script src="{{ url_for('static', filename='dashboard.js') }}" defer></script>
+</head>
+<body>
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar">
+    <a class="brand" href="/" aria-label="Basketball Bot home">
+      <span class="brand-mark" aria-hidden="true">🏀</span>
+      <span>BASKETBALL<span class="brand-light">BOT</span></span>
+    </a>
+    <div class="sidebar-group">
+      <p class="sidebar-eyebrow">WORKSPACE</p>
+      <a class="sidebar-link active" href="#overview"><span aria-hidden="true">▦</span> Overview</a>
+      <a class="sidebar-link" href="#services"><span aria-hidden="true">◉</span> Service health</a>
+      <a class="sidebar-link" href="#games"><span aria-hidden="true">◷</span> NBA schedule</a>
+      <a class="sidebar-link" href="#history"><span aria-hidden="true">≡</span> Recent activity</a>
+    </div>
+    <div class="sidebar-group">
+      <p class="sidebar-eyebrow">PROJECT</p>
+      <a class="sidebar-link" href="/" aria-label="Public landing page"><span aria-hidden="true">↗</span> Public website</a>
+      <a class="sidebar-link" href="https://github.com/sirxpl/basketball-bot" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">⌘</span> GitHub source</a>
+    </div>
+    <div class="sidebar-foot">
+      <span class="sidebar-foot-title">🏀 Dashboard preview</span>
+      <p>Identity login and live read-only monitoring. Guild settings and economy controls are not enabled.</p>
+    </div>
+  </aside>
+  <div class="dashboard-content">
+    <header class="dashboard-topbar">
+      <div class="topbar-trail">Basketball Bot <span>/</span> Dashboard</div>
+      <div class="account-area">
+        <span class="account-tag">DISCORD CONNECTED</span>
+        {% if user.avatar_url %}
+        <img class="account-avatar" src="{{ user.avatar_url }}" alt="" width="35" height="35">
+        {% else %}
+        <span class="account-avatar account-fallback" aria-hidden="true">D</span>
+        {% endif %}
+        <span class="account-name">{{ user.display_name }}</span>
+        <form action="{{ url_for('logout') }}" method="post">
+          <input type="hidden" name="csrf" value="{{ csrf_token }}">
+          <button class="signout-button" type="submit">Log out</button>
+        </form>
+      </div>
+    </header>
+    <main class="dashboard-main" id="overview">
+      <div class="dash-welcome">
+        <div>
+          <p class="eyebrow">WELCOME TO YOUR COURT</p>
+          <h1>Hey, {{ user.display_name }} <span aria-hidden="true">🏀</span></h1>
+          <p>Real-time service health and what's coming up across the NBA.</p>
+        </div>
+        <button id="dash-refresh" class="button button-primary" type="button">↻ Refresh dashboard</button>
+      </div>
+      <div class="dash-summary-grid">
+        <div class="dash-stat">
+          <div class="stat-label">SYSTEM STATUS <span aria-hidden="true">◉</span></div>
+          <div class="stat-value" id="dash-system">Checking…</div>
+          <p id="dash-system-detail">Waiting for health checks</p>
+        </div>
+        <div class="dash-stat">
+          <div class="stat-label">NEXT 21 DAYS <span aria-hidden="true">◷</span></div>
+          <div class="stat-value" id="dash-game-count">—</div>
+          <p>Upcoming games currently available from the feed</p>
+        </div>
+        <div class="dash-stat">
+          <div class="stat-label">DISCORD GATEWAY <span aria-hidden="true">◇</span></div>
+          <div class="stat-value" id="dash-discord">Checking…</div>
+          <p>Gateway token login is intentionally paused during testing</p>
+        </div>
+      </div>
+
+      <section id="services" class="dash-section">
+        <div class="dash-section-heading">
+          <div>
+            <p class="eyebrow">LIVE MONITORING</p>
+            <h2>System health<span class="accent-period">.</span></h2>
+            <p>Status reflects this deployment only, not global provider incidents.</p>
+          </div>
+          <span class="refresh-note">Updates every 30 seconds</span>
+        </div>
+        <div class="dash-services" id="dash-services" role="list" aria-live="polite">
+          <p class="empty-dashboard">Loading service status…</p>
+        </div>
+        <p class="dashboard-caption">The Discord gateway is manually disabled. OAuth2 website sign-in uses a separate authorization flow and does not start the bot. MongoDB is not needed while the bot is paused.</p>
+      </section>
+
+      <section id="games" class="dash-section">
+        <div class="dash-section-heading">
+          <div>
+            <p class="eyebrow">AROUND THE LEAGUE</p>
+            <h2>Upcoming NBA games<span class="accent-period">.</span></h2>
+            <p>Scheduled matchups from the NBA season feed. Times use your device's local timezone.</p>
+          </div>
+          <span class="refresh-note" id="games-updated">NBA schedule · waiting for feed</span>
+        </div>
+        <div class="dash-games-toolbar">
+          <div class="dash-tabs" aria-label="Upcoming game filter">
+            <button type="button" class="dash-tab active" data-filter="all" aria-pressed="true">Next games</button>
+            <button type="button" class="dash-tab" data-filter="today" aria-pressed="false">Today</button>
+            <button type="button" class="dash-tab" data-filter="week" aria-pressed="false">Next 7 days</button>
+          </div>
+          <a href="https://www.nba.com/schedule" target="_blank" rel="noopener noreferrer">Official NBA schedule ↗</a>
+        </div>
+        <div id="dash-games" class="dash-games-list" aria-live="polite">
+          <p class="empty-dashboard">Loading upcoming matchups…</p>
+        </div>
+        <p id="dash-schedule-notice" class="dashboard-caption">Game dates may change. Confirm details with the official NBA schedule.</p>
+      </section>
+
+      <section id="history" class="dash-section">
+        <div class="dash-section-heading">
+          <div>
+            <p class="eyebrow">OPERATIONS</p>
+            <h2>Recent activity<span class="accent-period">.</span></h2>
+            <p>Status changes recorded since this Render instance started.</p>
+          </div>
+        </div>
+        <div id="dash-activity" class="activity-panel"><p class="activity-empty">No activity yet.</p></div>
+      </section>
+      <footer class="dashboard-footer">
+        <span>Basketball Bot · Independent community project, not affiliated with the NBA.</span>
+        <span>Read-only dashboard preview · No economy or guild administration</span>
+      </footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 """Basketball Discord bot (also usable independently with 'python bot.py')."""
 import logging
+import os
 import discord
 from discord.ext import commands
 
@@ -94,6 +95,9 @@ def register_error_handler(bot):
 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+    if os.getenv("ENABLE_DISCORD_BOT", "false").strip().lower() != "true":
+        log.info("Discord bot intentionally disabled; set ENABLE_DISCORD_BOT=true to opt in.")
+        return
     settings = Settings.from_env()
     bot = BasketballBot(settings)
     register_error_handler(bot)

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · Basketball Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell" style="max-width:720px;padding-top:12vh">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">🏀</span> BASKETBALL<span class="brand-light">BOT</span></a>
+    <div class="feature-card" style="margin-top:40px;min-height:0">
+      <p class="eyebrow">DISCORD ACCOUNT CONNECTION</p>
+      <h1 style="font-size:clamp(25px,5vw,38px);margin:8px 0">{{ title }}</h1>
+      <p>{{ explanation }}</p>
+      <div class="hero-actions" style="margin-top:12px">
+        <a class="button button-primary" href="/">Back to homepage</a>
+        <a class="button button-secondary" href="/login">Retry login</a>
+      </div>
+    </div>
+    <p style="color:#93a5ba;font-size:13px;margin-top:20px">The public NBA schedule and system health remain available on the homepage even if Discord login is unavailable.</p>
+  </main>
+</body>
+</html>
