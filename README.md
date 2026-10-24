@@ -96,3 +96,17 @@ Community-made; not affiliated with the NBA or its teams.
 ### Quick Discord-only test without MongoDB
 
 Set `DISCORD_TOKEN` in Render and do not create `MONGODB_URI` yet. The web service start command is still `python web.py`. It uses a temporary in-memory profile store. Try `/ping`, `/shoot`, `/profile`, and `/leaderboard` in your Discord server. If the service restarts, temporary stats reset, as intended.
+
+## Discord login blocked by Cloudflare / HTTP 429
+
+If Render logs show a Discord login error such as `HTTPException: 429 Too Many Requests`, a Cloudflare **1015** page, or `Access denied` during `GET /users/@me`, the web server can still be live while the **Discord bot is offline**. This is not an invalid-token diagnosis and isn't caused by missing MongoDB. The request may be rate-limited or blocked at the hosting IP.
+
+The bot now logs only a short sanitized warning and shows **Discord login rate-limited (HTTP 429)** on the status page. It **does not auto-retry** authentication requests. This change improves diagnostics but **cannot bypass** Discord's access restrictions.
+
+Recommended actions:
+1. Stop repeatedly restarting or redeploying to retry; allow the restriction to expire naturally.
+2. Check [Discord's status page](https://discordstatus.com/) for a broader service incident. A healthy status page does not rule out an IP-specific block.
+3. If the same Cloudflare 1015 response persists, contact the hosting provider or Discord support with the timestamp and request ID from your private logs. Consider an approved alternative hosting service with different network conditions.
+4. A 200 response from `/health` only confirms the public website is alive. Check `/api/status` and the Discord component separately.
+
+Do not post bot tokens or sensitive environment variables into support tickets or public bug reports. UptimeRobot pings to `/health` cannot fix an upstream Discord rate limit.
