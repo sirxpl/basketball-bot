@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from basketball.config import Settings
 from basketball.database import Database
+from basketball.memory_database import MemoryDatabase
 
 log = logging.getLogger(__name__)
 EXTENSIONS = ("basketball.cogs.general", "basketball.cogs.players", "basketball.cogs.games")
@@ -20,7 +21,9 @@ class BasketballBot(commands.Bot):
             activity=discord.Game(name="Basketball | /shoot"),
         )
         self.settings = settings
-        self.database = Database(settings.mongodb_uri, settings.mongodb_db)
+        self.database = (Database(settings.mongodb_uri, settings.mongodb_db)
+                         if settings.mongodb_uri else MemoryDatabase())
+        self.temporary_storage = not bool(settings.mongodb_uri)
         self.status = status
 
     async def setup_hook(self):
@@ -31,7 +34,10 @@ class BasketballBot(commands.Bot):
                 self.status.update("database", "offline", "MongoDB startup connection failed; check Render logs.")
             raise
         if self.status:
-            self.status.update("database", "operational", "MongoDB startup connection succeeded.")
+            if self.temporary_storage:
+                self.status.update("database", "temporary", "Testing with temporary memory. Stats reset after restart.")
+            else:
+                self.status.update("database", "operational", "MongoDB startup connection succeeded.")
         for extension in EXTENSIONS:
             await self.load_extension(extension)
             log.info("Loaded extension %s", extension)

@@ -22,8 +22,6 @@ class Settings:
 
         if not token:
             raise RuntimeError("DISCORD_TOKEN is required (see .env.example)")
-        if not uri:
-            raise RuntimeError("MONGODB_URI is required (see .env.example)")
         if not db_name:
             raise RuntimeError("MONGODB_DATABASE must not be empty")
         if guild_text and (not guild_text.isdecimal() or int(guild_text) < 1):

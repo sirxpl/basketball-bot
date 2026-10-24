@@ -6,7 +6,8 @@ const STATE_NAMES = {
   offline: "Offline",
   checking: "Checking",
   starting: "Starting",
-  unknown: "Unknown"
+  unknown: "Unknown",
+  temporary: "In-memory"
 };
 
 function displayTime(input) {
@@ -24,7 +25,8 @@ function showStatus(data) {
   const phrases = {
     operational: ["All monitored systems operational", "The website, Discord bot, database startup check, and NBA scoreboard feed are reporting normally.", "✓"],
     degraded: ["Some services are experiencing issues", "Check the individual components below for details.", "!"],
-    checking: ["Some services are still being checked", "Information will update as each component finishes starting or checking.", "◌"]
+    checking: ["Some services are still being checked", "Information will update as each component finishes starting or checking.", "◌"],
+    testing: ["Temporary testing mode", "No MongoDB required: player stats will reset when this service restarts.", "◎"]
   };
   const info = phrases[overall] || phrases.checking;
   title.textContent = info[0];
