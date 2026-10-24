@@ -10,7 +10,7 @@ class StatusTests(unittest.TestCase):
 
     def test_operational(self):
         r = StatusRegistry()
-        for name in ("discord", "database", "nba"):
+        for name in ("discord", "database", "nba", "schedule"):
             r.update(name, "operational", "OK", checked=True)
         self.assertEqual(r.snapshot()["overall"], "operational")
 

@@ -44,6 +44,7 @@ class StatusTests(unittest.TestCase):
         r = StatusRegistry()
         r.update("discord", "operational", "Connected")
         r.update("nba", "operational", "Connected", checked=True)
+        r.update("schedule", "operational", "Connected", checked=True)
         r.update("database", "temporary", "In-memory only")
         snapshot = r.snapshot()
         self.assertEqual(snapshot["overall"], "testing")
