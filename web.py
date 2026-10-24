@@ -20,6 +20,21 @@ from bot import BasketballBot, register_error_handler
 log = logging.getLogger(__name__)
 
 
+def describe_discord_http_status(code: int) -> str:
+    """Summarize upstream errors without exposing Discord's raw HTML response."""
+    if code == 429:
+        return (
+            "Discord login was rate-limited (HTTP 429 / possible Cloudflare 1015). "
+            "This deployment cannot connect right now. Pause retries and check later; "
+            "the hosting IP may be restricted."
+        )
+    if code == 403:
+        return "Discord rejected this server's API request (HTTP 403). Check hosting restrictions."
+    if code in (500, 502, 503, 504):
+        return f"Discord is temporarily unavailable to this deployment (HTTP {code})."
+    return f"Discord API returned HTTP {code} during connection. Check Render logs."
+
+
 def launch_discord(registry):
     try:
         settings = Settings.from_env()
@@ -47,6 +62,12 @@ def launch_discord(registry):
     except discord.LoginFailure:
         log.error("Discord rejected the configured token")
         registry.update("discord", "offline", "Discord login failed. Check DISCORD_TOKEN.")
+    except discord.HTTPException as exc:
+        # Discord can return a full Cloudflare 1015 HTML document in the exception.
+        # Avoid logging that response body (it can include request metadata/IPs).
+        message = describe_discord_http_status(exc.status)
+        log.warning("Discord bot did not connect: HTTP %d. %s", exc.status, message)
+        registry.update("discord", "offline", message)
     except Exception:
         log.exception("Discord bot exited unexpectedly")
         registry.update("discord", "offline", "Bot could not start or stopped unexpectedly; check Render logs.")
