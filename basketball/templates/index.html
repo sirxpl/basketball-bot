@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="Basketball Bot — Discord basketball minigames and public service status.">
+  <title>Basketball Bot — Home & Status</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-1" aria-hidden="true"></div>
+  <div class="ambient ambient-2" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="shell nav">
+      <a class="brand" href="/" aria-label="Basketball Bot home">
+        <span class="brand-mark" aria-hidden="true">🏀</span>
+        <span>BASKETBALL<span class="brand-light">BOT</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#status">System status</a>
+        <a href="#activity">Activity</a>
+      </nav>
+      <a class="nav-cta" href="https://github.com/sirxpl/basketball-bot" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> WELCOME TO THE COURT</p>
+        <h1 id="hero-title">Your Discord.<br><span>Our court.</span></h1>
+        <p class="hero-description">
+          Basketball Bot brings court-side fun to your Discord server.
+          Play shooting minigames, build your player profile, and climb your server leaderboard.
+          NBA data features are on the way.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#features">Explore features <span aria-hidden="true">↗</span></a>
+          <a class="button button-secondary" href="#status">View live status <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-meta">
+          <span><span class="meta-dot"></span> Discord community bot</span>
+          <span>Built with Python</span>
+          <span>Early access</span>
+        </div>
+      </div>
+      <div class="court-illustration" aria-hidden="true">
+        <div class="court-glow"></div>
+        <div class="court-board">
+          <div class="court-topline"><span>HOME</span><span>AWAY</span></div>
+          <div class="court-score"><span>02</span><span class="versus">VS</span><span>03</span></div>
+          <div class="court-label">EVERY SHOT COUNTS.</div>
+          <div class="court-lines"><div class="center-circle"></div><div class="mid-line"></div></div>
+        </div>
+        <div class="floating-ball">🏀</div>
+        <div class="court-chip">THE GAME IS ON <span class="chip-dot"></span></div>
+      </div>
+    </section>
+
+    <section class="section shell" id="features" aria-labelledby="features-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">PLAY YOUR WAY</p>
+          <h2 id="features-title">More than a scoreboard.</h2>
+        </div>
+        <p>Built for communities that love basketball — even if you're new to the game.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🏀</span>
+          <div><span class="tag tag-live">AVAILABLE NOW</span></div>
+          <h3>Take your shot</h3>
+          <p>Try a two- or three-point shot with <code>/shoot</code> and earn fictional points and XP.</p>
+          <span class="feature-command">/shoot</span>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🏆</span>
+          <div><span class="tag tag-live">AVAILABLE NOW</span></div>
+          <h3>Own the leaderboard</h3>
+          <p>Build your player profile and compete for the top spot with your server's members.</p>
+          <span class="feature-command">/profile &nbsp; /leaderboard</span>
+        </article>
+        <article class="feature-card feature-future">
+          <span class="feature-icon" aria-hidden="true">📊</span>
+          <div><span class="tag">IN DEVELOPMENT</span></div>
+          <h3>Follow the NBA</h3>
+          <p>Game scores, schedules, standings, and team updates are planned for a future release.</p>
+          <span class="feature-command">COMING SOON</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section shell" id="status" aria-labelledby="status-title">
+      <div class="section-heading status-heading">
+        <div>
+          <p class="eyebrow">SERVICE MONITORING</p>
+          <h2 id="status-title">System status<span class="accent-period">.</span></h2>
+          <p>Live checks of this deployment's connected services.</p>
+        </div>
+        <button id="refresh-status" class="button button-secondary refresh-button" type="button">↻ &nbsp; Refresh status</button>
+      </div>
+      <div class="overall-card" role="status" aria-live="polite" aria-atomic="true">
+        <span id="overall-icon" class="overall-icon checking" aria-hidden="true">◌</span>
+        <div class="overall-content">
+          <div class="overall-label">CURRENT SYSTEM HEALTH</div>
+          <h3 id="overall-title">Checking systems…</h3>
+          <p id="overall-subtitle">Requesting the latest service information.</p>
+        </div>
+        <div class="overall-time"><span>Last updated</span><time id="updated-time">—</time></div>
+      </div>
+      <div class="status-grid">
+        <article class="status-card">
+          <div class="component-header"><span class="component-icon" aria-hidden="true">🌐</span><span class="state-pill checking" id="badge-website">Checking</span></div>
+          <h3>Status website</h3>
+          <p class="component-description" id="message-website">Checking...</p>
+          <div class="component-footer"><span>Website health</span><span class="status-ping" id="date-website">—</span></div>
+        </article>
+        <article class="status-card">
+          <div class="component-header"><span class="component-icon" aria-hidden="true">🤖</span><span class="state-pill checking" id="badge-discord">Checking</span></div>
+          <h3>Discord bot</h3>
+          <p class="component-description" id="message-discord">Checking...</p>
+          <div class="component-footer"><span>Gateway connection</span><span class="status-ping" id="date-discord">—</span></div>
+        </article>
+        <article class="status-card">
+          <div class="component-header"><span class="component-icon" aria-hidden="true">🗃️</span><span class="state-pill checking" id="badge-database">Checking</span></div>
+          <h3>MongoDB</h3>
+          <p class="component-description" id="message-database">Checking...</p>
+          <div class="component-footer"><span>Startup connection</span><span class="status-ping" id="date-database">—</span></div>
+        </article>
+        <article class="status-card">
+          <div class="component-header"><span class="component-icon" aria-hidden="true">🏀</span><span class="state-pill checking" id="badge-nba">Checking</span></div>
+          <h3>NBA live feed</h3>
+          <p class="component-description" id="message-nba">Checking...</p>
+          <div class="component-footer"><span>Scoreboard probe · every 5 min</span><span class="status-ping" id="date-nba">—</span></div>
+        </article>
+      </div>
+      <div class="notice">
+        <span aria-hidden="true">ⓘ</span>
+        <p>
+          These statuses describe <strong>this hosting instance</strong>. A failed NBA check means the feed
+          couldn't be reached from our server, not necessarily that NBA.com is down globally.
+          NBA feed failures do not automatically stop the Discord bot. MongoDB status currently confirms the startup connection, not continuous monitoring.
+        </p>
+      </div>
+    </section>
+
+    <section class="section shell activity-section" id="activity" aria-labelledby="activity-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">RECENT CHANGES</p><h2 id="activity-title">Service activity<span class="accent-period">.</span></h2></div>
+        <p>Changes observed since the current application instance started.</p>
+      </div>
+      <div class="activity-panel" id="event-list" aria-live="polite">
+        <p class="activity-empty">Loading recent activity…</p>
+      </div>
+      <p class="activity-hint">This log is temporary and resets when the service restarts. It isn't a permanent incident history.</p>
+    </section>
+
+    <section class="shell outro">
+      <div>
+        <p class="eyebrow">A NEW KIND OF COURT</p>
+        <h2>Built for basketball communities.</h2>
+        <p>New bot features are in active development. Follow the project on GitHub.</p>
+      </div>
+      <a class="button button-primary" href="https://github.com/sirxpl/basketball-bot" target="_blank" rel="noopener noreferrer">View source on GitHub ↗</a>
+    </section>
+  </main>
+  <footer class="footer shell">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">🏀</span><span>BASKETBALL<span class="brand-light">BOT</span></span></div>
+    <p>Community-made. Not affiliated with the NBA or its teams.</p>
+    <p>On Render Free, the website and Discord bot may sleep after inactivity and this page cannot report incidents while the whole service is asleep.</p>
+  </footer>
+</body>
+</html>
