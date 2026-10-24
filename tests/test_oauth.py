@@ -56,7 +56,7 @@ class AuthIntegrationTests(unittest.TestCase):
         self.assertEqual(dash.status_code, 200)
         self.assertIn(b"Tester", dash.data)
         self.assertNotIn(b"dummy-secret-not-real", dash.data)
-        with self.client.session_transaction() as session:
+        with self.client.session_transaction(base_url="https://basketball-bot-6jpx.onrender.com") as session:
             self.assertNotIn("oauth_access_token", session)
             csrf = session["logout_csrf"]
         self.assertEqual(self.client.post("/logout", data={"csrf": "wrong"}, base_url="https://basketball-bot-6jpx.onrender.com").status_code, 403)
