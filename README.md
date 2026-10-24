@@ -52,7 +52,7 @@ The signed-in dashboard is currently **read-only**. It does not provide server a
 - **ENABLE_DISCORD_BOT=false** means that starting **python web.py** does not construct a Discord client or use the Discord bot token.
 - Once the Discord rate limit is resolved, you can explicitly set **ENABLE_DISCORD_BOT=true** and configure **DISCORD_TOKEN** in Render to turn the legacy Discord worker back on. This is NOT needed now.
 - **MONGODB_URI** remains optional for temporary game stats. Persistent stats can be added later without changing the web OAuth features.
-- Running **python bot.py** directly is a separate Discord-only entrypoint and is **not** gated by ENABLE_DISCORD_BOT; avoid that command while the rate limit persists.
+- Running **python bot.py** directly also respects ENABLE_DISCORD_BOT=false and exits without logging in. Explicitly set ENABLE_DISCORD_BOT=true only after the Discord rate limit is resolved.
 
 ## Run locally
 

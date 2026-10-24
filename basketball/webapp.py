@@ -20,7 +20,11 @@ def create_app(registry, schedule=None, *, oauth_settings=None, oauth_client=Non
         app.secret_key = settings.session_secret
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SECURE=True,
+        # Local HTTP OAuth callbacks need a non-Secure cookie; production HTTPS
+        # redirects always use a Secure, HTTP-only session cookie.
+        SESSION_COOKIE_SECURE=not settings.redirect_uri.startswith(
+            ("http://localhost:", "http://127.0.0.1:")
+        ),
         SESSION_COOKIE_SAMESITE="Lax",
         PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
         MAX_CONTENT_LENGTH=16 * 1024,
