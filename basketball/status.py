@@ -25,7 +25,7 @@ class StatusRegistry:
         self._events = deque(maxlen=12)
 
     def update(self, name, state, message, *, checked=False):
-        if name not in NAMES or state not in ("operational", "starting", "checking", "degraded", "offline", "unknown"):
+        if name not in NAMES or state not in ("operational", "starting", "checking", "degraded", "offline", "unknown", "temporary"):
             raise ValueError("Invalid status update")
         with self._lock:
             previous = self._states[name]
@@ -47,8 +47,14 @@ class StatusRegistry:
         with self._lock:
             components = {k: dict(v) for k, v in self._states.items()}
             states = [components[k]["state"] for k in ("discord", "database", "nba")]
-            overall = "degraded" if any(s in ("degraded", "offline") for s in states) else (
-                "checking" if any(s in ("checking", "starting", "unknown") for s in states) else "operational")
+            if any(s in ("degraded", "offline") for s in states):
+                overall = "degraded"
+            elif any(s in ("checking", "starting", "unknown") for s in states):
+                overall = "checking"
+            elif "temporary" in states:
+                overall = "testing"
+            else:
+                overall = "operational"
             return {
                 "overall": overall, "components": components, "events": list(self._events),
                 "generated_at": now(), "uptime_seconds": int(monotonic() - self._start),
