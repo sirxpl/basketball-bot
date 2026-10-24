@@ -1,95 +1,90 @@
 # 🏀 Basketball Bot
 
-Discord basketball minigames today; NBA data, team tracking and notifications in later releases.
+A modular Python Discord bot with basketball minigames, server profiles and a **public Render status website**.
 
-**Status:** Foundation / early development. Real NBA scores, standings, player data, and dashboard are **not implemented yet**. No made-up live results.
+**Currently available:** /ping, /about, /shoot, /profile, /leaderboard and the read-only status website. NBA game results, standings, and other live data slash commands are **not implemented yet**. The website only probes the reachability of the publicly accessible NBA live scoreboard endpoint.
 
-## Included slash commands
+## 🌐 Status website / Render Free
+
+The Render Web Service serves an introduction and mobile-friendly component status page, while one Discord client runs in a single background thread.
+
+| Route | Purpose |
+| --- | --- |
+| \`/\` | Public landing page, feature overview, component health and recent in-memory transitions. |
+| \`/api/status\` | JSON states for the website, Discord connection, MongoDB startup connection and NBA scoreboard feed. |
+| \`/health\` | HTTP website liveness: returns 200 even if the Discord bot or NBA feed is down. |
+
+NBA feed is probed every **five minutes** at the public NBA CDN scoreboard URL used by \`nba_api\`. A probe failure means **this instance could not reach or parse that feed**, not proof the whole NBA platform is down. The bot is independent of the NBA feed and should keep its existing minigame commands available. MongoDB is checked at startup; the site does not continuously monitor DB availability. This site is not an official NBA service status page.
+
+### Deploy on Render (manual setup)
+
+1. Merge the GitHub PR for this website.
+2. On [Render](https://dashboard.render.com/), choose **New → Web Service**, connect \`sirxpl/basketball-bot\`, branch \`main\`, and select **Free**.
+3. **Build Command:** \`pip install -r requirements.txt\`
+4. **Start Command:** \`python web.py\` (not \`python bot.py\`)
+5. **Health Check Path:** \`/health\`
+6. Under **Environment**, add \`DISCORD_TOKEN\` and \`MONGODB_URI\` as private secrets; optionally \`MONGODB_DATABASE=basketball_bot\` and \`TEST_GUILD_ID=your-test-server-id\`. Never paste tokens, usernames, or credentials in source code.
+7. Deploy and visit the \`onrender.com\` URL Render assigns. Check \`/health\` and \`/api/status\`. Allow time for the bot to log in and for the NBA probe to complete.
+
+\`render.yaml\` is also included for Render Blueprint users. Only use **one instance/one process**; running multiple web workers would create multiple Discord gateway sessions for the same token. This app uses production WSGI server **Waitress**, bound to \`0.0.0.0:$PORT\` (Render sets \`PORT\`, default is 10000).
+
+**Important Render Free limitation:** The entire web service can sleep after around 15 minutes without incoming HTTP traffic. When it sleeps, the bot is **also offline**, the status page is unavailable, and the next browser request starts a cold boot. The status page is not an uptime guarantee and cannot report an outage while the whole host is down.
+
+### Local quick start
+
+Install Python 3.11+ and dependencies:
+
+\`\`\`bash
+python -m venv .venv
+# macOS / Linux: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+python -m pip install -r requirements.txt
+\`\`\`
+
+Copy \`.env.example\` to \`.env\` and fill in \`DISCORD_TOKEN\` and \`MONGODB_URI\`, then run:
+
+- \`python web.py\` for the website and bot together (browse \`http://localhost:10000\`).
+- \`python bot.py\` for a **Discord-only** process without the website.
+- \`python -m unittest discover -s tests -v\` to run unit tests.
+
+Create the Discord application at https://discord.com/developers/applications and install with the \`bot\` and \`applications.commands\` scopes and minimal send-message permissions. Message Content and Members privileged intents are not required.
+
+### Commands
 
 | Command | Description |
 | --- | --- |
-| /ping | Check bot latency. |
-| /about | View project information. |
-| /shoot | Attempt a 2- or 3-point virtual basketball shot. 30-second cooldown per user and server. |
-| /profile | View your points, XP, shooting attempts, and accuracy. |
-| /leaderboard | Top 10 scorers in the current server. |
+| \`/ping\` | Check Discord gateway latency. |
+| \`/about\` | Learn what the bot currently supports. |
+| \`/shoot\` | Take a virtual 2- or 3-point shot, cooldown 30 seconds per user/server. |
+| \`/profile\` | Shooting stats, fictional points and XP. |
+| \`/leaderboard\` | Top 10 players in the current server. |
 
-The shooting minigame awards **fictional points and XP only**. There is no gambling, betting, or real-money exchange.
+The minigame is fictional and non-wagering. No money, betting, or real-world prizes.
 
-## Project structure
+### Project structure
 
-```text
-bot.py                          # Discord client, startup, slash command syncing
+\`\`\`text
+bot.py                       Discord bot + slash command loading
+web.py                       Render web and Discord entry point
 basketball/
-  config.py                     # Environment configuration
-  database.py                   # Async MongoDB and indexes
-  cogs/
-    general.py                  # /ping, /about
-    players.py                  # /profile, /leaderboard
-    games.py                    # /shoot
-  services/
-    shooting.py                 # Pure and testable game rules
-tests/test_shooting.py          # Standard-library unit tests
-```
+  config.py                  Environment variable validation
+  database.py                MongoDB operations and indexes
+  status.py                  In-memory component statuses and events
+  nba_monitor.py             NBA CDN scoreboard reachability checks
+  webapp.py                  Flask routes
+  templates/index.html       Responsive public website
+  static/style.css           Styling
+  static/app.js              Client-side status refresh (30 seconds)
+  cogs/general.py            /ping /about
+  cogs/games.py              /shoot
+  cogs/players.py            /profile /leaderboard
+  services/shooting.py       Pure game rules
+tests/                       Status, web, NBA monitor and game unit tests
+render.yaml                  Optional Render Blueprint
+\`\`\`
 
-## First-time setup
+MongoDB stores per-server user profiles. Indexes are created at bot startup. Credentials must be environment variables; the \`.env\` file is git-ignored.
 
-1. Install **Python 3.11 or newer** and create a Discord application/bot in the Discord Developer Portal.
-2. Invite your bot with the **bot** and **applications.commands** OAuth2 scopes. Grant only necessary permissions (e.g. Send Messages and Embed Links). No Message Content or Members privileged intents are needed.
-3. Create a free MongoDB Atlas deployment (or use another compatible MongoDB server). Create a database user and configure Atlas network access to allow your host to connect.
-4. Make a virtual environment and install dependencies:
+**Next milestone:** actual NBA /scores and /schedule commands, provider caching, more basketball games, favorites and a full Discord OAuth2 dashboard. The public introduction/status website is not the authenticated admin dashboard.
 
-```sh
-python -m venv .venv
-# Linux/macOS:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
-
-5. Copy `.env.example` to `.env` and configure `DISCORD_TOKEN` and `MONGODB_URI`. For faster testing, set `TEST_GUILD_ID` to your Discord server ID.
-6. Start it:
-
-```sh
-python bot.py
-```
-
-**Never commit your bot token, MongoDB URI/password, or local .env file.** Keep them in your deployment's secret environment variables. Rotate anything accidentally exposed.
-
-## Deploy on Railway / Render
-
-- Runtime: **Python 3.11+**
-- Install/build command: `pip install -r requirements.txt`
-- Start command: `python bot.py`
-- Secret environment variables: `DISCORD_TOKEN`, `MONGODB_URI`
-- Optional variables: `MONGODB_DATABASE`, `TEST_GUILD_ID`
-
-Use a worker/background service where available: this is a Discord gateway bot, **not** an HTTP web server. Do not expect an HTTP health endpoint. On hosts where worker services require a paid tier, check the hosting plan before deploying.
-
-## Database
-
-The bot creates indexes at startup. The `players` collection stores one profile **per guild and user**, with shots, made shots, fictional points, XP and creation time. `guild_settings` is reserved for future notification settings. The application fails fast with a clear error if MongoDB cannot be reached, rather than running with lost data.
-
-## Command synchronization
-
-- With `TEST_GUILD_ID`: commands sync to the specified development server for quick testing.
-- Without it: global commands sync at startup; it may take time for new commands to appear.
-- **Important:** switching from global to test-guild sync does not remove previously published global commands. Clean up global registrations separately if necessary.
-
-## Tests
-
-```sh
-python -m unittest discover -s tests -v
-```
-
-CI also compiles Python files and runs those tests.
-
-## Next features (not yet shipped)
-
-- Real NBA data provider integration: live scores, schedules, team rosters and standings.
-- Saved favorite NBA teams and game notification channels.
-- More minigames, achievements, moderation/configuration commands.
-- OAuth2 web dashboard with server-level administration.
-
-Built for community basketball fun; not affiliated with the NBA or its teams.
+Community-made; not affiliated with the NBA or its teams.
