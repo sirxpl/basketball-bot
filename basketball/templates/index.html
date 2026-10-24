@@ -5,7 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0a1020">
   <meta name="description" content="Basketball Bot — Discord basketball minigames and public service status.">
-  <title>Basketball Bot — Home & Status</title>
+  <title>Basketball Bot — Home, NBA Schedule & Dashboard</title>
+  <link rel="canonical" href="{{ canonical_url }}">
+  <!-- Standard Open Graph preview if Discord's Component Embed cannot render. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Basketball Bot">
+  <meta property="og:title" content="🏀 Basketball Bot | NBA Games, Dashboard &amp; Live Status">
+  <meta property="og:description" content="Your Discord. Our court. Explore upcoming NBA matchups, service status, and the Discord OAuth2 dashboard.">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:image" content="{{ preview_image_url }}">
+  <meta property="og:image:secure_url" content="{{ preview_image_url }}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Basketball Bot: Your Discord. Our court.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Basketball Bot | NBA Games &amp; Dashboard">
+  <meta name="twitter:description" content="Upcoming NBA games, service status, and a Discord dashboard.">
+  <meta name="twitter:image" content="{{ preview_image_url }}">
+  <!-- Discord's official Component Embed: a Container with link-style buttons. -->
+  <script id="discord:component-embed" type="application/json">{{ discord_component_embed | tojson }}</script>
+
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
@@ -45,6 +65,8 @@
         <div class="hero-actions">
           <a class="button button-primary" href="#features">Explore features <span aria-hidden="true">↗</span></a>
           <a class="button button-secondary" href="#status">View live status <span aria-hidden="true">↓</span></a>
+          <button id="copy-discord-link" class="button button-secondary" type="button" data-url="{{ canonical_url }}">Copy Discord link <span aria-hidden="true">⧉</span></button>
+
           {% if login_enabled %}
           <a class="button button-secondary" href="{{ url_for('dashboard') if signed_in else url_for('login') }}">Discord dashboard ↗</a>
           {% endif %}

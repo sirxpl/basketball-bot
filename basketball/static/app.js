@@ -150,3 +150,18 @@ async function refreshPublicSchedule() {
 }
 refreshPublicSchedule();
 setInterval(refreshPublicSchedule, 60000);
+
+
+// Share the canonical public link, not the authenticated /dashboard URL.
+const shareButton=document.getElementById("copy-discord-link");
+if (shareButton) {
+  shareButton.addEventListener("click", async function () {
+    const url=shareButton.dataset.url;
+    try {
+      await navigator.clipboard.writeText(url);
+      shareButton.textContent="Link copied! Paste it into Discord 🏀";
+    } catch (_) {
+      window.prompt("Copy this public link and paste it into Discord:",url);
+    }
+  });
+}

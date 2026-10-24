@@ -1,13 +1,16 @@
 """Public status/NBA pages and a private Discord OAuth2 identity dashboard."""
 from datetime import timedelta
 import hmac
+from io import BytesIO
 import secrets
 import time
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from basketball.oauth import DiscordOAuthClient, OAuthError, OAuthSettings
 from basketball.schedule import ScheduleService
+from basketball.link_preview import build_embed, public_site_url
+from basketball.og_image import render_preview_png
 
 
 def create_app(registry, schedule=None, *, oauth_settings=None, oauth_client=None):
@@ -16,6 +19,10 @@ def create_app(registry, schedule=None, *, oauth_settings=None, oauth_client=Non
     settings = oauth_settings if oauth_settings is not None else OAuthSettings.from_env()
     oauth = oauth_client if oauth_client is not None else DiscordOAuthClient(settings)
     login_enabled = settings.enabled
+    # A fixed, trusted site origin avoids untrusted Host-header injection in embeds.
+    canonical_url = public_site_url() + "/"
+    share_payload = build_embed(public_site_url())
+    preview_image_url = public_site_url() + "/og-preview.png"
     if login_enabled:
         app.secret_key = settings.session_secret
     app.config.update(
@@ -44,7 +51,9 @@ def create_app(registry, schedule=None, *, oauth_settings=None, oauth_client=Non
 
     @app.after_request
     def security_headers(response):
-        response.headers["Cache-Control"] = "no-store"
+        response.headers["Cache-Control"] = (
+            "public, max-age=3600" if request.endpoint == "og_preview" else "no-store"
+        )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Frame-Options"] = "DENY"
@@ -56,11 +65,29 @@ def create_app(registry, schedule=None, *, oauth_settings=None, oauth_client=Non
         )
         return response
 
+    def render_public_home():
+        return render_template(
+            "index.html",
+            login_enabled=login_enabled,
+            signed_in=bool(signed_in()),
+            canonical_url=canonical_url,
+            preview_image_url=preview_image_url,
+            discord_component_embed=share_payload,
+        )
+
     @app.get("/")
     def home():
-        return render_template(
-            "index.html", login_enabled=login_enabled, signed_in=bool(signed_in())
-        )
+        return render_public_home()
+
+    @app.get("/share")
+    def share():
+        # A public shareable URL: Discordbot sees the same component meta as /.
+        # Private /dashboard is intentionally NOT exposed to the crawler.
+        return render_public_home()
+
+    @app.get("/og-preview.png")
+    def og_preview():
+        return send_file(BytesIO(render_preview_png()), mimetype="image/png")
 
     @app.get("/api/status")
     def api_status():
