@@ -47,9 +47,10 @@ class PreviewModelTests(unittest.TestCase):
         self.assertEqual(len(payload), 1)
         self.assertLess(len(json.dumps(payload, ensure_ascii=True, separators=(",", ":")).encode()), MAX_COMPONENT_JSON_BYTES)
         nested = root["components"]
-        self.assertEqual(nested[0]["type"], 9)
-        self.assertEqual(nested[0]["accessory"]["style"], 5)
-        self.assertEqual(nested[0]["accessory"]["url"], SITE + "/dashboard")
+        # Text Display header intentionally has NO top-right accessory button.
+        self.assertEqual(nested[0]["type"], 10)
+        self.assertNotIn("accessory", nested[0])
+        self.assertIn("BASKETBALL BOT", nested[0]["content"])
         self.assertEqual(nested[1]["type"], 12)
         self.assertEqual(nested[1]["items"][0]["media"]["url"], SITE + "/og-preview.png")
         row = next(item for item in nested if item["type"] == 1)
@@ -87,7 +88,15 @@ class PublicPreviewRoutesTests(unittest.TestCase):
         result = self.client.get("/share")
         self.assertEqual(result.status_code, 200)
         _, data = read_component_json(result.data)
-        self.assertEqual(data["component"]["components"][0]["accessory"]["url"], SITE + "/dashboard")
+        components = data["component"]["components"]
+        self.assertEqual(components[0]["type"], 10)
+        self.assertNotIn("accessory", components[0])
+        button_row = next(item for item in components if item["type"] == 1)
+        dashboard_buttons = [
+            button for button in button_row["components"] if button["url"] == SITE + "/dashboard"
+        ]
+        self.assertEqual(len(dashboard_buttons), 1)
+        self.assertEqual(dashboard_buttons[0]["label"], "Dashboard")
         self.assertIn(b'id="copy-discord-link"', result.data)
 
     def test_image_is_public_png_and_cached(self):
