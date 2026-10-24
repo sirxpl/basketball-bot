@@ -16,7 +16,14 @@ MAX_COMPONENT_JSON_BYTES = 3000
 
 def public_site_url(raw=None):
     """Read fixed deployment config, not the untrusted inbound Host header."""
-    value = (raw if raw is not None else os.getenv("PUBLIC_SITE_URL", DEFAULT_SITE)).strip()
+    value = raw if raw is not None else os.getenv("PUBLIC_SITE_URL", DEFAULT_SITE)
+    # urllib.parse strips TAB/CR/LF before splitting, which can silently
+    # transform a malformed configured link into an unintended hostname.
+    if not isinstance(value, str) or not value or any(
+        character.isspace() or ord(character) < 32 or ord(character) == 127
+        for character in value
+    ):
+        raise ValueError("PUBLIC_SITE_URL must not contain whitespace or control characters")
     url = urlsplit(value)
     is_local = url.scheme == "http" and url.hostname in ("localhost", "127.0.0.1")
     if not (
