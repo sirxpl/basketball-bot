@@ -47,19 +47,14 @@ def build_embed(site_url):
             "type": 17, "accent_color": ACCENT,
             "components": [
                 {
-                    "type": 9,
-                    "components": [{
-                        "type": 10,
-                        "content": (
-                            "## 🏀 [BASKETBALL BOT](" + homepage + ")\n"
-                            "**Your Discord. Our court.**\n"
-                            "Explore NBA matchups, upcoming games, and the dashboard."
-                        ),
-                    }],
-                    "accessory": {
-                        "type": 2, "style": 5,
-                        "label": "Open Dashboard", "url": dashboard,
-                    },
+                    # Use a Text Display instead of a Section: Discord Sections
+                    # require an accessory, which was the duplicate button.
+                    "type": 10,
+                    "content": (
+                        "## 🏀 [BASKETBALL BOT](" + homepage + ")\n"
+                        "**Your Discord. Our court.**\n"
+                        "Explore NBA matchups, upcoming games, and the dashboard."
+                    ),
                 },
                 {
                     "type": 12,
