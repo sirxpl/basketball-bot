@@ -12,7 +12,7 @@ EXTENSIONS = ("basketball.cogs.general", "basketball.cogs.players", "basketball.
 
 
 class BasketballBot(commands.Bot):
-    def __init__(self, settings: Settings, status=None):
+    def __init__(self, settings: Settings, status_registry=None):
         super().__init__(
             command_prefix=commands.when_mentioned,
             help_command=None,
@@ -24,20 +24,20 @@ class BasketballBot(commands.Bot):
         self.database = (Database(settings.mongodb_uri, settings.mongodb_db)
                          if settings.mongodb_uri else MemoryDatabase())
         self.temporary_storage = not bool(settings.mongodb_uri)
-        self.status = status
+        self.status_registry = status_registry
 
     async def setup_hook(self):
         try:
             await self.database.connect()
         except Exception:
-            if self.status:
-                self.status.update("database", "offline", "MongoDB startup connection failed; check Render logs.")
+            if self.status_registry:
+                self.status_registry.update("database", "offline", "MongoDB startup connection failed; check Render logs.")
             raise
-        if self.status:
+        if self.status_registry:
             if self.temporary_storage:
-                self.status.update("database", "temporary", "Testing with temporary memory. Stats reset after restart.")
+                self.status_registry.update("database", "temporary", "Testing with temporary memory. Stats reset after restart.")
             else:
-                self.status.update("database", "operational", "MongoDB startup connection succeeded.")
+                self.status_registry.update("database", "operational", "MongoDB startup connection succeeded.")
         for extension in EXTENSIONS:
             await self.load_extension(extension)
             log.info("Loaded extension %s", extension)
@@ -52,24 +52,24 @@ class BasketballBot(commands.Bot):
 
     async def on_ready(self):
         log.info("Logged in as %s (ID: %s)", self.user, self.user.id if self.user else "?")
-        if self.status:
-            self.status.update("discord", "operational", "Discord bot is online.")
+        if self.status_registry:
+            self.status_registry.update("discord", "operational", "Discord bot is online.")
 
     async def on_disconnect(self):
-        if self.status:
-            self.status.update("discord", "degraded", "Discord disconnected; reconnecting.")
+        if self.status_registry:
+            self.status_registry.update("discord", "degraded", "Discord disconnected; reconnecting.")
 
     async def on_resumed(self):
-        if self.status:
-            self.status.update("discord", "operational", "Discord connection resumed.")
+        if self.status_registry:
+            self.status_registry.update("discord", "operational", "Discord connection resumed.")
 
     async def close(self):
         try:
             await self.database.close()
         finally:
-            if self.status:
-                self.status.update("database", "unknown", "Database connection ended.")
-                self.status.update("discord", "offline", "Bot process stopped.")
+            if self.status_registry:
+                self.status_registry.update("database", "unknown", "Database connection ended.")
+                self.status_registry.update("discord", "offline", "Bot process stopped.")
             await super().close()
 
 

@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 def launch_discord(registry):
     try:
         settings = Settings.from_env()
-        bot = BasketballBot(settings, status=registry)
+        bot = BasketballBot(settings, status_registry=registry)
         register_error_handler(bot)
     except RuntimeError as exc:
         # Settings.from_env only includes names of missing keys, not their values.
