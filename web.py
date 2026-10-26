@@ -1,4 +1,4 @@
-"""Render Web Service. Dashboard/NBA run without logging in the Discord bot."""
+"""Render Web Service: website and Discord gateway startup when configured."""
 import asyncio
 import logging
 import os
@@ -7,6 +7,7 @@ import threading
 from dotenv import load_dotenv
 from waitress import serve
 
+from basketball.runtime import bot_enabled, bot_start_reason
 from basketball.nba_monitor import monitor_nba
 from basketball.schedule import ScheduleService, monitor_schedule
 from basketball.status import StatusRegistry
@@ -15,13 +16,8 @@ from basketball.webapp import create_app
 log = logging.getLogger(__name__)
 
 
-def bot_enabled():
-    # A saved DISCORD_TOKEN does not enable the bot; explicit opt-in only.
-    return os.getenv("ENABLE_DISCORD_BOT", "false").strip().lower() == "true"
-
-
 def launch_discord(registry):
-    # Import Discord only when bot usage is explicitly enabled.
+    # Import Discord only when the gateway should start.
     import discord
     from basketball.config import Settings
     from bot import BasketballBot, register_error_handler
@@ -75,13 +71,14 @@ def main():
     stop_event = threading.Event()
 
     if bot_enabled():
-        log.info("Discord bot explicitly enabled")
+        log.info("Discord worker enabled; connecting alongside website")
         threading.Thread(target=launch_discord, args=(registry,), daemon=True,
                          name="discord-worker").start()
     else:
-        log.info("Discord bot paused: no Discord bot login request will be sent")
-        registry.update("discord", "disabled", "Intentionally paused while Discord bot login is rate-limited.")
-        registry.update("database", "disabled", "Storage not required while Discord bot is paused.")
+        reason = bot_start_reason()
+        log.info("%s No gateway login attempted.", reason)
+        registry.update("discord", "disabled", reason)
+        registry.update("database", "disabled", "Storage not required while Discord bot is disabled.")
 
     threading.Thread(target=monitor_nba, args=(registry, stop_event), daemon=True,
                      name="nba-scoreboard-monitor").start()

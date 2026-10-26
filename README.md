@@ -2,7 +2,7 @@
 
 A Discord basketball community project with a responsive public website, a Discord OAuth2 signed-in dashboard, NBA upcoming schedule data, and service health reports.
 
-**Current mode: website-only.** The Discord gateway bot is deliberately paused because Discord returned HTTP 429 / Cloudflare 1015 to its login attempt. This release does not change the economy, shooting minigames, profiles, or slash commands, and it does not require MongoDB. Those commands are unavailable while the gateway is paused.
+**Current mode: website + Discord bot.** Startup is restored: the bot automatically starts alongside the website when `DISCORD_TOKEN` is configured, unless `ENABLE_DISCORD_BOT=false` explicitly pauses it. The existing game commands and economy remain unchanged. MongoDB is optional and temporary stats reset after a restart.
 
 ## Features
 
@@ -41,50 +41,46 @@ Discord may cache link previews and feature display may vary across clients. The
 
 Custom domain: set the optional PUBLIC_SITE_URL environment variable to a plain HTTPS origin. By default, it points to the existing Render URL. All buttons use this trusted configured origin, never the HTTP Host header.
 
-## Setup: existing Render Web Service
+## Restore bot startup on your existing Render Web Service
 
-1. Merge the dashboard PR into the main branch of https://github.com/sirxpl/basketball-bot .
-2. In Render, keep the existing Web Service (Free for testing). Build command: **pip install -r requirements.txt**. Start command: **python web.py**. HTTP health-check path: **/health**.
-3. Open **Render → basketball-bot → Environment**. Add **ENABLE_DISCORD_BOT=false**. This option defaults to false, so a previously saved DISCORD_TOKEN is **never used automatically** by the web entrypoint. You may remove the DISCORD_TOKEN environment variable until Discord's restriction is resolved.
-4. Visit https://discord.com/developers/applications and open the Basketball Bot application.
-5. In **OAuth2**, copy the **Client ID (Application ID)** and **Client Secret**. Register the following exact redirect URI under OAuth2 **Redirects**:
+The Discord worker is restored in `web.py` and `bot.py`. `python web.py` starts the website and, when enabled, one Discord gateway worker. A gateway failure **does not stop** the public website or NBA schedule. The Render service still uses just one web-server process.
 
-    https://basketball-bot-6jpx.onrender.com/oauth/callback
+1. Merge this fix's GitHub pull request into `main`.
+2. On your **existing Render Web Service**, open **Environment**. If `ENABLE_DISCORD_BOT=false` is present, **change it to `true`** or remove it to use automatic startup. **Existing Render environment variables override `render.yaml` and code defaults.**
+3. Ensure `DISCORD_TOKEN` is configured privately on Render. This is the **Discord bot token** from the Bot tab, not `DISCORD_CLIENT_SECRET` from the OAuth2 tab.
+4. Keep **Build** `pip install -r requirements.txt`, **Start** `python web.py`, and **Health Check Path** `/health`.
+5. Let Render deploy the updated code **once**. Check its logs for `Logged in as ...`, then test `/ping`, `/about`, `/shoot`, `/profile`, and `/leaderboard` on your server.
 
-6. Add the following environment variables under the same Render service:
+### Gateway mode
 
-| Name | Value |
-| --- | --- |
-| ENABLE_DISCORD_BOT | false |
-| DISCORD_CLIENT_ID | The application's Client ID from Discord |
-| DISCORD_CLIENT_SECRET | The private OAuth2 client secret from Discord |
-| DISCORD_REDIRECT_URI | https://basketball-bot-6jpx.onrender.com/oauth/callback |
-| SESSION_SECRET | A freshly generated random string of at least 32 characters |
+| `ENABLE_DISCORD_BOT` | `DISCORD_TOKEN` | Result |
+| --- | --- | --- |
+| Unset or `auto` | Present | Bot attempts login alongside website |
+| `true` | Present | Bot attempts login alongside website |
+| `false` | Any | Bot remains paused; website stays available |
+| Unset or `auto` | Missing | Website only; status explains token missing |
+| `true` | Missing | Website works; bot reports configuration error |
 
-7. To generate SESSION_SECRET locally, run this Python command and paste its output **only** into Render (never into GitHub or chat):
+Keep OAuth2 settings (`DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `SESSION_SECRET`) unchanged so the dashboard keeps working. MongoDB is not needed for testing: without `MONGODB_URI` the bot stores points and profiles in temporary memory only.
 
-    python -c "import secrets; print(secrets.token_hex(32))"
+**Previous Discord rate limit:** This Render instance previously received `HTTP 429 / Cloudflare 1015` during Discord authentication. Restoring bot startup cannot bypass an upstream IP restriction. If that error reappears, set `ENABLE_DISCORD_BOT=false`, avoid repeated redeployments, and let the restriction clear.
 
-8. Save and deploy once. Open https://basketball-bot-6jpx.onrender.com and click **Login with Discord**, or visit **/dashboard** directly. If OAuth2 isn't configured yet, the public website still works and the private dashboard displays a configuration notice.
+`render.yaml` now includes `ENABLE_DISCORD_BOT=true` and the private `DISCORD_TOKEN` variable for **new Blueprint** deployments. Your existing manually created Web Service will not pick up those settings until you edit **Render → Environment**.
 
-**Important:** Discord OAuth2 token exchange also talks to Discord's API. The Render hosting IP restriction *might* also block OAuth login. A sign-in error does not disable the public NBA schedule or status website. Wait for the restriction to resolve rather than repeatedly restarting the bot.
+### Website OAuth2 setup (unchanged)
 
-**OAuth credentials are NOT the Discord bot token.** Only the identify permission is requested; this does not install the bot or grant server administrative access. OAuth bearer tokens are not placed in browser sessions. Users are authenticated with secure, signed HTTP-only cookies; sessions expire after 12 hours.
+1. In Discord Developer Portal → OAuth2, register `https://basketball-bot-6jpx.onrender.com/oauth/callback` as a redirect.
+2. Under Render → Environment, configure `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, and a fresh random `SESSION_SECRET` at least 32 characters long.
+3. Use `https://basketball-bot-6jpx.onrender.com/dashboard` to sign in. OAuth2 uses `identify` only and is separate from bot gateway authentication.
 
-## Future Discord bot use
-
-- **ENABLE_DISCORD_BOT=false** means that starting **python web.py** does not construct a Discord client or use the Discord bot token.
-- Once the Discord rate limit is resolved, you can explicitly set **ENABLE_DISCORD_BOT=true** and configure **DISCORD_TOKEN** in Render to turn the legacy Discord worker back on. This is NOT needed now.
-- **MONGODB_URI** remains optional for temporary game stats. Persistent stats can be added later without changing the web OAuth features.
-- Running **python bot.py** directly also respects ENABLE_DISCORD_BOT=false and exits without logging in. Explicitly set ENABLE_DISCORD_BOT=true only after the Discord rate limit is resolved.
-
+Never commit Discord credentials or session secrets to GitHub.
 ## Run locally
 
 Use Python 3.11 or newer. Install dependencies:
 
     python -m pip install -r requirements.txt
 
-Copy .env.example to .env, keep ENABLE_DISCORD_BOT=false, then start:
+Copy `.env.example` to `.env`, add `DISCORD_TOKEN` to start both services, or use `ENABLE_DISCORD_BOT=false` for a website-only local run. Then start:
 
     python web.py
 
@@ -98,7 +94,7 @@ Automated tests verify route protection, OAuth state checks, logout CSRF, bot pa
 
 ## Key modules
 
-- web.py — Render website and optional, explicitly enabled Discord worker
+- web.py — Render website and restored Discord worker (auto with token)
 - basketball/oauth.py — Discord OAuth2 identify-only code exchange
 - basketball/webapp.py — Flask authentication and status/schedule routes
 - basketball/schedule.py — upcoming NBA feed and cache
@@ -106,7 +102,7 @@ Automated tests verify route protection, OAuth state checks, logout CSRF, bot pa
 - basketball/status.py — thread-safe component status registry
 - basketball/templates — public homepage, dashboard and OAuth error pages
 - basketball/static — responsive CSS and browser-side refresh scripts
-- bot.py and basketball/cogs — unchanged Discord commands and minigame logic
+- bot.py and basketball/cogs — restored bot start entry point; original commands and gameplay unchanged
 
 **Render Free hosting can spin down when idle.** The entire website may be temporarily inaccessible during sleep. Checking /health shows website availability, not whether Discord is currently running.
 

@@ -74,7 +74,7 @@
         <div class="dash-stat">
           <div class="stat-label">DISCORD GATEWAY <span aria-hidden="true">◇</span></div>
           <div class="stat-value" id="dash-discord">Checking…</div>
-          <p>Gateway token login is intentionally paused during testing</p>
+          <p>Shows the bot's live Discord gateway connection</p>
         </div>
       </div>
 
@@ -90,7 +90,7 @@
         <div class="dash-services" id="dash-services" role="list" aria-live="polite">
           <p class="empty-dashboard">Loading service status…</p>
         </div>
-        <p class="dashboard-caption">The Discord gateway is manually disabled. OAuth2 website sign-in uses a separate authorization flow and does not start the bot. MongoDB is not needed while the bot is paused.</p>
+        <p class="dashboard-caption">Discord bot login and dashboard OAuth2 are independent services. The bot can run alongside this dashboard, and MongoDB remains optional for temporary stats.</p>
       </section>
 
       <section id="games" class="dash-section">

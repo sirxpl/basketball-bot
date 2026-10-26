@@ -60,7 +60,7 @@
         <p class="hero-description">
           Basketball Bot brings court-side fun to your Discord server.
           Play shooting minigames, build your player profile, and climb your server leaderboard.
-          Browse real upcoming NBA games below. Discord bot commands are temporarily paused while login access is rate-limited.
+          Browse real upcoming NBA games below and follow our Discord bot's connection status. Slash commands work when the bot is connected.
         </p>
         <div class="hero-actions">
           <a class="button button-primary" href="#features">Explore features <span aria-hidden="true">↗</span></a>
@@ -101,14 +101,14 @@
       <div class="feature-grid">
         <article class="feature-card">
           <span class="feature-icon" aria-hidden="true">🏀</span>
-          <div><span class="tag">BOT PAUSED</span></div>
+          <div><span class="tag">DISCORD COMMAND</span></div>
           <h3>Take your shot</h3>
           <p>Try a two- or three-point shot with <code>/shoot</code> and earn fictional points and XP.</p>
           <span class="feature-command">/shoot</span>
         </article>
         <article class="feature-card">
           <span class="feature-icon" aria-hidden="true">🏆</span>
-          <div><span class="tag">BOT PAUSED</span></div>
+          <div><span class="tag">DISCORD COMMAND</span></div>
           <h3>Own the leaderboard</h3>
           <p>Build your player profile and compete for the top spot with your server's members.</p>
           <span class="feature-command">/profile &nbsp; /leaderboard</span>
@@ -178,7 +178,7 @@
         <p>
           These statuses describe <strong>this hosting instance</strong>. A failed NBA check means the feed
           couldn't be reached from our server, not necessarily that NBA.com is down globally.
-          Discord bot login is intentionally disabled while its gateway requests are rate-limited. The public website and NBA schedule remain separate. MongoDB is not required while the bot is paused.
+          Discord bot connectivity, the NBA feeds, and this website are monitored independently. If Discord login fails, the website stays available. MongoDB is optional; player stats reset on instance restart without it.
         </p>
       </div>
     </section>

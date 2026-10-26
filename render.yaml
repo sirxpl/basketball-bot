@@ -8,7 +8,9 @@ services:
     healthCheckPath: /health
     envVars:
       - key: ENABLE_DISCORD_BOT
-        value: "false"
+        value: "true"
+      - key: DISCORD_TOKEN
+        sync: false
       - key: DISCORD_CLIENT_ID
         sync: false
       - key: DISCORD_CLIENT_SECRET
