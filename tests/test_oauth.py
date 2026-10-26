@@ -97,13 +97,15 @@ class ConfigAndPauseTests(unittest.TestCase):
         self.assertEqual(client.get("/dashboard").status_code, 503)
         self.assertEqual(client.get("/login").status_code, 503)
 
-    def test_discord_token_is_not_activated_by_presence(self):
-        with patch.dict(os.environ, {"DISCORD_TOKEN": "still-present", "ENABLE_DISCORD_BOT": "false"}):
-            self.assertFalse(bot_enabled())
-        with patch.dict(os.environ, {"DISCORD_TOKEN": "still-present"}, clear=True):
+    def test_bot_auto_wakes_with_token_and_can_be_paused(self):
+        with patch.dict(os.environ, {"DISCORD_TOKEN": "test-token"}, clear=True):
+            self.assertTrue(bot_enabled())
+        with patch.dict(os.environ, {"DISCORD_TOKEN": "test-token", "ENABLE_DISCORD_BOT": "false"}, clear=True):
             self.assertFalse(bot_enabled())
         with patch.dict(os.environ, {"ENABLE_DISCORD_BOT": "true"}, clear=True):
             self.assertTrue(bot_enabled())
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertFalse(bot_enabled())
 
 
 if __name__ == "__main__":
